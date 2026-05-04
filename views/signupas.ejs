@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join HITECH - Choose Your Role</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --green: #00C46A;
+            --green-dark: #009952;
+            --green-dim: rgba(0, 196, 106, 0.12);
+            --green-glow: rgba(0, 196, 106, 0.25);
+            --bg: #0A0B0F;
+            --bg2: #0F1117;
+            --bg3: #14171F;
+            --surface: #1A1D27;
+            --surface2: #20243200;
+            --border: rgba(255,255,255,0.07);
+            --border-hover: rgba(0, 196, 106, 0.4);
+            --text: #F0F1F5;
+            --text-muted: #7B8094;
+            --text-dim: #4A4F65;
+            --white: #fff;
+            --radius: 14px;
+            --radius-sm: 8px;
+            --shadow: 0 4px 24px rgba(0,0,0,0.4);
+            --shadow-green: 0 0 40px rgba(0,196,106,0.15);
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        /* NOISE TEXTURE OVERLAY */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.35;
+        }
+
+        /* NAVBAR */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(10, 11, 15, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-inner {
+            max-width: 1400px;
+            margin: auto;
+            padding: 0 40px;
+            height: 72px;
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .logo-img { height: 36px; width: auto; display: block; }
+
+        .logo-text {
+            font-family: 'Syne', sans-serif;
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--white);
+            letter-spacing: -0.5px;
+            text-decoration: none;
+        }
+        .logo-text span { color: var(--green); }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+        }
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 500;
+            padding: 6px 14px;
+            border-radius: var(--radius-sm);
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .nav-links a:hover { color: var(--white); background: rgba(255,255,255,0.05); }
+
+        .nav-btns { display: flex; align-items: center; gap: 10px; }
+
+        .btn-ghost {
+            padding: 8px 18px;
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 500;
+            font-family: 'DM Sans', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        .btn-ghost:hover { border-color: rgba(255,255,255,0.2); color: var(--white); }
+
+        .btn-primary {
+            padding: 8px 20px;
+            background: var(--green);
+            color: #000;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 700;
+            font-family: 'DM Sans', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            letter-spacing: 0.01em;
+        }
+        .btn-primary:hover { background: #00d975; box-shadow: 0 0 20px rgba(0,196,106,0.4); }
+
+        .hamburger {
+            display: none;
+            font-size: 22px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            margin-left: auto;
+        }
+
+        /* MAIN */
+        .main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 20px;
+            position: relative;
+        }
+
+        .main::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 60% 50% at 50% 0%, rgba(0,196,106,0.08) 0%, transparent 60%),
+                linear-gradient(180deg, #0A0B0F 0%, #0C0E14 100%);
+            pointer-events: none;
+        }
+
+        .join-box {
+            max-width: 580px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .join-box h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(32px, 5vw, 48px);
+            font-weight: 800;
+            color: var(--white);
+            margin-bottom: 8px;
+            letter-spacing: -1px;
+        }
+
+        .join-box > p {
+            font-size: 16px;
+            color: var(--text-muted);
+            margin-bottom: 40px;
+        }
+
+        /* CHOICE CARDS */
+        .choice-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .choice-card {
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px 24px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            text-align: left;
+            background: var(--surface);
+            position: relative;
+        }
+
+        .choice-card:hover {
+            border-color: rgba(255,255,255,0.15);
+            background: var(--bg3);
+            transform: translateY(-2px);
+        }
+
+        .choice-card.selected {
+            border-color: var(--green);
+            background: var(--green-dim);
+        }
+
+        .choice-card input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .card-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: background 0.2s;
+        }
+
+        .choice-card.selected .card-icon {
+            background: rgba(0, 196, 106, 0.15);
+        }
+
+        .card-icon svg {
+            width: 24px;
+            height: 24px;
+            color: var(--text-muted);
+            transition: color 0.2s;
+        }
+
+        .choice-card.selected .card-icon svg {
+            color: var(--green);
+        }
+
+        .card-text {
+            flex: 1;
+        }
+
+        .card-text strong {
+            font-family: 'Syne', sans-serif;
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--white);
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .card-text span {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .card-check {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid var(--text-dim);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+
+        .card-check svg {
+            width: 12px;
+            height: 12px;
+            color: #000;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .choice-card.selected .card-check {
+            background: var(--green);
+            border-color: var(--green);
+        }
+
+        .choice-card.selected .card-check svg {
+            opacity: 1;
+        }
+
+        /* JOIN BUTTON */
+        .join-btn {
+            width: 100%;
+            padding: 16px;
+            background: var(--green);
+            color: #000;
+            font-size: 16px;
+            font-weight: 700;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'DM Sans', sans-serif;
+            letter-spacing: 0.01em;
+        }
+
+        .join-btn:hover:not(:disabled) {
+            background: #00d975;
+            box-shadow: 0 0 20px rgba(0,196,106,0.4);
+            transform: translateY(-1px);
+        }
+
+        .join-btn:disabled {
+            background: var(--text-dim);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* SIGN IN LINK */
+        .signin-text {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-top: 24px;
+        }
+
+        .signin-text a {
+            color: var(--green);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .signin-text a:hover { text-decoration: underline; }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .nav-inner { padding: 0 20px; height: 64px; gap: 12px; }
+            .nav-links {
+                position: fixed;
+                top: 64px; left: 0; right: 0;
+                background: rgba(10,11,15,0.98);
+                backdrop-filter: blur(20px);
+                flex-direction: column;
+                padding: 20px;
+                gap: 8px;
+                border-bottom: 1px solid var(--border);
+                display: none;
+                z-index: 999;
+            }
+            .nav-links.active { display: flex; }
+            .nav-links a { padding: 10px 16px; border-radius: var(--radius-sm); }
+            .nav-btns { margin-left: auto; }
+            .hamburger { display: block; }
+            .main { padding: 60px 16px; }
+            .join-box h1 { font-size: 28px; }
+            .choice-card { padding: 20px; gap: 14px; }
+            .card-icon { width: 44px; height: 44px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="nav-inner">
+            <a href="/">
+                <img src="/assets/logo.png" alt="HITECH" class="logo-img" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+                <span class="logo-text" style="display:none">HI<span>TECH</span></span>
+            </a>
+            <div class="nav-links" id="navLinks">
+                <a href="/">Home</a>
+                <a href="/login">Log In</a>
+            </div>
+            <div class="nav-btns">
+                <a href="/sprovidersignup" class="btn-ghost">Become a Provider</a>
+                <button class="btn-primary" onclick="location.href='/signupas'">Join Free</button>
+            </div>
+            <button class="hamburger" onclick="toggleMenu()">&#9776;</button>
+        </div>
+    </nav>
+
+    <!-- MAIN -->
+    <main class="main">
+        <div class="join-box">
+            <h1>Join HITECH</h1>
+            <p>Choose how you'd like to use HITECH</p>
+
+            <div class="choice-cards">
+                <label class="choice-card" id="card-user" onclick="selectCard('user')">
+                    <input type="radio" name="role" value="user" id="roleUser">
+                    <div class="card-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                            <circle cx="12" cy="7" r="4" />
+                        </svg>
+                    </div>
+                    <div class="card-text">
+                        <strong>I'm a User</strong>
+                        <span>Hiring for a project or personal need</span>
+                    </div>
+                    <div class="card-check">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                    </div>
+                </label>
+
+                <label class="choice-card" id="card-provider" onclick="selectCard('provider')">
+                    <input type="radio" name="role" value="provider" id="roleProvider">
+                    <div class="card-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                            <rect x="2" y="7" width="20" height="14" rx="2" />
+                            <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" />
+                            <line x1="12" y1="12" x2="12" y2="16" />
+                            <line x1="10" y1="14" x2="14" y2="14" />
+                        </svg>
+                    </div>
+                    <div class="card-text">
+                        <strong>I'm a Service Provider</strong>
+                        <span>Offering my skills & services to customers</span>
+                    </div>
+                    <div class="card-check">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                    </div>
+                </label>
+            </div>
+
+            <button class="join-btn" id="joinBtn" disabled onclick="handleJoin()">Continue</button>
+
+            <p class="signin-text">Already have an account? <a href="/login">Log in</a></p>
+        </div>
+    </main>
+
+    <script>
+        function toggleMenu() {
+            document.getElementById("navLinks").classList.toggle("active");
+        }
+
+        function selectCard(role) {
+            document.querySelectorAll('.choice-card').forEach(c => c.classList.remove('selected'));
+            if (role === 'user') {
+                document.getElementById('card-user').classList.add('selected');
+                document.getElementById('roleUser').checked = true;
+            } else {
+                document.getElementById('card-provider').classList.add('selected');
+                document.getElementById('roleProvider').checked = true;
+            }
+            document.getElementById('joinBtn').disabled = false;
+        }
+
+        function handleJoin() {
+            const selected = document.querySelector('input[name="role"]:checked');
+            if (!selected) return;
+            if (selected.value === 'user') {
+                window.location.href = '/signup';
+            } else {
+                window.location.href = '/sprovidersignup';
+            }
+        }
+
+        document.addEventListener("click", function(e) {
+            const nav = document.getElementById("navLinks");
+            const ham = document.querySelector(".hamburger");
+            if (!nav.contains(e.target) && !ham.contains(e.target)) {
+                nav.classList.remove("active");
+            }
+        });
+    </script>
+</body>
+</html>

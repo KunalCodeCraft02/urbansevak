@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= category ? category : 'All Providers' %> - HITECH</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --green: #00C46A;
+            --green-dark: #009952;
+            --green-dim: rgba(0, 196, 106, 0.12);
+            --green-glow: rgba(0, 196, 106, 0.25);
+            --bg: #0A0B0F;
+            --bg2: #0F1117;
+            --bg3: #14171F;
+            --surface: #1A1D27;
+            --surface2: #20243200;
+            --border: rgba(255,255,255,0.07);
+            --border-hover: rgba(0, 196, 106, 0.4);
+            --text: #F0F1F5;
+            --text-muted: #7B8094;
+            --text-dim: #4A4F65;
+            --white: #fff;
+            --radius: 14px;
+            --radius-sm: 8px;
+            --shadow: 0 4px 24px rgba(0,0,0,0.4);
+            --shadow-green: 0 0 40px rgba(0,196,106,0.15);
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        /* NOISE TEXTURE OVERLAY */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.35;
+        }
+
+        /* NAVBAR */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(10, 11, 15, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-inner {
+            max-width: 1400px;
+            margin: auto;
+            padding: 0 40px;
+            height: 72px;
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .logo-img { height: 36px; width: auto; display: block; }
+
+        .logo-text {
+            font-family: 'Syne', sans-serif;
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--white);
+            letter-spacing: -0.5px;
+            text-decoration: none;
+        }
+        .logo-text span { color: var(--green); }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+        }
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 500;
+            padding: 6px 14px;
+            border-radius: var(--radius-sm);
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .nav-links a:hover { color: var(--white); background: rgba(255,255,255,0.05); }
+        .nav-links a.active { color: var(--green); }
+
+        .nav-btns { display: flex; align-items: center; gap: 10px; }
+
+        .btn-ghost {
+            padding: 8px 18px;
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 500;
+            font-family: 'DM Sans', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        .btn-ghost:hover { border-color: rgba(255,255,255,0.2); color: var(--white); }
+
+        .btn-primary {
+            padding: 8px 20px;
+            background: var(--green);
+            color: #000;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 700;
+            font-family: 'DM Sans', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            letter-spacing: 0.01em;
+        }
+        .btn-primary:hover { background: #00d975; box-shadow: 0 0 20px rgba(0,196,106,0.4); }
+
+        .hamburger {
+            display: none;
+            font-size: 22px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            margin-left: auto;
+        }
+
+        /* PAGE HEADER */
+        .page-header {
+            background: var(--bg2);
+            border-bottom: 1px solid var(--border);
+            padding: 40px 0;
+            position: relative;
+        }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse 50% 60% at 50% 0%, rgba(0,196,106,0.06) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .page-header .container {
+            max-width: 1400px;
+            margin: auto;
+            padding: 0 40px;
+            position: relative;
+        }
+
+        .breadcrumb { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+
+        .breadcrumb a {
+            text-decoration: none;
+            color: var(--green);
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .breadcrumb a:hover { color: #00d975; }
+
+        .breadcrumb span { color: var(--text-dim); font-size: 14px; }
+
+        .page-header h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--white);
+            letter-spacing: -1px;
+            margin-bottom: 8px;
+        }
+
+        .page-header p { font-size: 15px; color: var(--text-muted); }
+
+        /* CONTAINER */
+        .container { max-width: 1400px; margin: auto; padding: 0 40px; }
+
+        /* PROVIDERS GRID */
+        .providers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            padding: 40px 0 80px;
+        }
+
+        /* PROVIDER CARD */
+        .provider-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            transition: all 0.25s ease;
+            cursor: pointer;
+        }
+
+        .provider-card:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(0,196,106,0.1);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, rgba(0,196,106,0.15), rgba(0,196,106,0.05));
+            padding: 28px 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(0,196,106,0.3);
+        }
+
+        .card-avatar-placeholder {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: var(--text-muted);
+            border: 2px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .card-name { color: var(--white); font-size: 18px; font-weight: 700; }
+
+        .card-rating { color: var(--text-muted); font-size: 14px; margin-top: 4px; }
+
+        .card-rating .star { color: #ffbe5b; }
+
+        .card-body { padding: 20px 24px 24px; }
+
+        .card-services { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+
+        .service-tag {
+            font-size: 12px;
+            background: var(--green-dim);
+            color: var(--green);
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .card-detail {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .card-detail-icon {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .card-distance {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--green-dim);
+            color: var(--green);
+            font-weight: 700;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        .hire-btn {
+            width: 100%;
+            padding: 10px 16px;
+            background: var(--green);
+            color: #000;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 12px;
+            letter-spacing: 0.01em;
+        }
+
+        .hire-btn:hover {
+            background: #00d975;
+            box-shadow: 0 0 20px rgba(0,196,106,0.4);
+            transform: translateY(-1px);
+        }
+
+        /* MODAL OVERLAY */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            z-index: 9998;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 40px;
+            width: 100%;
+            max-width: 480px;
+            position: relative;
+            animation: fadeUp 0.3s ease both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-header {
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .modal-header h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--white);
+            margin-bottom: 4px;
+        }
+
+        .modal-header p {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 24px;
+            cursor: pointer;
+            transition: color 0.2s;
+            line-height: 1;
+        }
+
+        .modal-close:hover { color: var(--white); }
+
+        /* MODAL FORM */
+        .modal-card .field { margin-bottom: 18px; text-align: left; }
+
+        .modal-card .field label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .modal-card .field input,
+        .modal-card .field textarea {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 15px;
+            color: var(--text);
+            background: var(--bg2);
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .modal-card .field input:focus,
+        .modal-card .field textarea:focus {
+            border-color: var(--green);
+            box-shadow: 0 0 0 3px var(--green-dim);
+        }
+
+        .modal-card .field textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .modal-card .field input::placeholder,
+        .modal-card .field textarea::placeholder { color: var(--text-dim); }
+
+        /* EMPTY STATE */
+        .empty-state {
+            text-align: center;
+            padding: 120px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state-icon { font-size: 64px; margin-bottom: 20px; opacity: 0.6; }
+
+        .empty-state h3 { font-size: 22px; color: var(--white); margin-bottom: 10px; }
+
+        .empty-state p { font-size: 15px; margin-bottom: 24px; }
+
+        /* FOOTER */
+        .footer {
+            background: var(--bg2);
+            border-top: 1px solid var(--border);
+            padding-top: 64px;
+        }
+
+        .footer-grid {
+            max-width: 1400px;
+            margin: auto;
+            padding: 0 40px 48px;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 32px;
+        }
+
+        .footer-col h4 {
+            font-family: 'Syne', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-dim);
+            margin-bottom: 18px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+
+        .footer-col ul li a {
+            font-size: 14px;
+            color: var(--text-dim);
+            text-decoration: none;
+            line-height: 1.4;
+            transition: color 0.15s;
+        }
+
+        .footer-col ul li a:hover { color: var(--white); }
+
+        .footer-bottom {
+            border-top: 1px solid var(--border);
+            padding: 24px 0;
+        }
+
+        .footer-bottom-inner {
+            max-width: 1400px;
+            margin: auto;
+            padding: 0 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .footer-brand { display: flex; align-items: center; gap: 16px; }
+
+        .footer-logo {
+            font-family: 'Syne', sans-serif;
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--white);
+            letter-spacing: -0.5px;
+        }
+        .footer-logo span { color: var(--green); }
+
+        .footer-copy { font-size: 13px; color: var(--text-dim); }
+
+        .footer-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+        .social-link {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+            text-decoration: none;
+        }
+
+        .social-link:hover { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+
+        .social-link svg { width: 15px; height: 15px; }
+
+        .footer-sep { color: var(--text-dim); font-size: 16px; }
+
+        .locale-link {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 13px;
+            color: var(--text-dim);
+            text-decoration: none;
+            padding: 5px 10px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            transition: all 0.15s;
+        }
+
+        .locale-link:hover { color: var(--white); border-color: rgba(255,255,255,0.15); }
+
+        .locale-link svg { width: 13px; height: 13px; }
+
+        /* RESPONSIVE */
+        @media (max-width: 1200px) {
+            .providers-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+        }
+
+        @media (max-width: 1024px) {
+            .footer-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        @media (max-width: 768px) {
+            .nav-inner { padding: 0 20px; height: 64px; gap: 12px; }
+
+            .nav-links {
+                position: fixed;
+                top: 64px; left: 0; right: 0;
+                background: rgba(10,11,15,0.98);
+                backdrop-filter: blur(20px);
+                flex-direction: column;
+                padding: 20px;
+                gap: 8px;
+                border-bottom: 1px solid var(--border);
+                display: none;
+                z-index: 999;
+            }
+
+            .nav-links.active { display: flex; }
+            .nav-links a { padding: 10px 16px; border-radius: var(--radius-sm); }
+            .nav-btns { margin-left: auto; }
+            .hamburger { display: block; }
+
+            .page-header .container { padding: 0 20px; }
+            .page-header h1 { font-size: 24px; }
+            .container { padding: 0 20px; }
+
+            .providers-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+                padding: 24px 0 60px;
+            }
+
+            .footer-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 24px;
+                padding: 0 20px 32px;
+            }
+
+            .footer-bottom-inner { padding: 0 20px; }
+        }
+
+        @media (max-width: 480px) {
+            .footer-grid { grid-template-columns: 1fr; }
+            .page-header h1 { font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="nav-inner">
+            <a href="/">
+                <img src="/assets/logo.png" alt="HITECH" class="logo-img" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+                <span class="logo-text" style="display:none">HI<span>TECH</span></span>
+            </a>
+            <div class="nav-links" id="navLinks">
+                <a href="/">Home</a>
+                <a href="/track-booking">Track Booking</a>
+                <a href="/login">Log In</a>
+                <a href="/signupas">Sign Up</a>
+            </div>
+            <div class="nav-btns">
+                <a href="/sprovidersignup" class="btn-ghost">Become a Provider</a>
+                <button class="btn-primary" onclick="location.href='/signupas'">Join Free</button>
+            </div>
+            <button class="hamburger" onclick="toggleMenu()">&#9776;</button>
+        </div>
+    </nav>
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="/">Home</a>
+                <span>›</span>
+                <span style="color: var(--text); font-weight: 500;"><%= category ? category : 'All Providers' %></span>
+            </div>
+            <h1><%= category ? category : 'All Providers' %></h1>
+            <p>
+                <%= providers.length %> provider(s) found
+                <% if (lat && lng) { %> near your location <% } %>
+            </p>
+        </div>
+    </div>
+
+    <!-- PROVIDERS GRID -->
+    <div class="container">
+        <% if (providers.length === 0) { %>
+            <div class="empty-state">
+                <div class="empty-state-icon">&#128269;</div>
+                <h3>No providers found</h3>
+                <p>Be the first to join as a service provider in this category!</p>
+                <a href="/sprovidersignup" class="btn-primary" style="text-decoration: none;">Become a Provider</a>
+            </div>
+        <% } else { %>
+            <div class="providers-grid">
+                <% providers.forEach(function(p) {
+                    var distanceKm = p.distance ? (p.distance / 1000).toFixed(2) : null;
+                %>
+                    <div class="provider-card">
+                        <div class="card-header">
+                            <% if (p.profileImage) { %>
+                                <img class="card-avatar" src="/uploads/<%= p.profileImage %>" alt="<%= p.name %>">
+                            <% } else { %>
+                                <div class="card-avatar-placeholder">&#128100;</div>
+                            <% } %>
+                            <div>
+                                <div class="card-name"><%= p.name %></div>
+                                <div class="card-rating">
+                                    <span class="star">&#11088;</span> <%= p.rating ? p.rating.toFixed(1) : 'New' %>
+                                    <% if (p.totalReviews > 0) { %>
+                                        (<%= p.totalReviews %> review<%= p.totalReviews > 1 ? 's' : '' %>)
+                                    <% } %>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="card-services">
+                                <% (p.services || []).forEach(function(svc) { %>
+                                    <span class="service-tag"><%= svc %></span>
+                                <% }); %>
+                            </div>
+                            <div class="card-detail">
+                                <span class="card-detail-icon">&#128222;</span>
+                                <span><%= p.phone %></span>
+                            </div>
+                            <div class="card-detail">
+                                <span class="card-detail-icon">&#128205;</span>
+                                <span><%= p.address %></span>
+                            </div>
+                            <% if (p.experience) { %>
+                                <div class="card-detail">
+                                    <span class="card-detail-icon">&#128188;</span>
+                                    <span><%= p.experience %> year<%= p.experience > 1 ? 's' : '' %> experience</span>
+                                </div>
+                            <% } %>
+                            <% if (distanceKm) { %>
+                                <div class="card-distance">&#128205; <%= distanceKm %> km away</div>
+                            <% } %>
+                            <button class="hire-btn" onclick="openBookingModal('<%= p._id %>', '<%= p.name.replace(/'/g, "\\'") %>')">Hire Me</button>
+                        </div>
+                    </div>
+                <% }); %>
+            </div>
+        <% } %>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4>Categories</h4>
+                <ul>
+                    <li><a href="#" onclick="handleCatClick('Home & Maintenance Services');return false;">Home & Maintenance</a></li>
+                    <li><a href="#" onclick="handleCatClick('On-demand Workers');return false;">On-demand Workers</a></li>
+                    <li><a href="#" onclick="handleCatClick('Digital Services');return false;">Digital Services</a></li>
+                    <li><a href="#" onclick="handleCatClick('Pet Services');return false;">Pet Services</a></li>
+                    <li><a href="#" onclick="handleCatClick('Health & Wellness');return false;">Health & Wellness</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>For Customers</h4>
+                <ul>
+                    <li><a href="/signupas">Sign Up</a></li>
+                    <li><a href="/login">Log In</a></li>
+                    <li><a href="#">How it Works</a></li>
+                    <li><a href="#">Safety Guide</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>For Providers</h4>
+                <ul>
+                    <li><a href="/sprovidersignup">Become a Provider</a></li>
+                    <li><a href="#">Provider Dashboard</a></li>
+                    <li><a href="#">Success Stories</a></li>
+                    <li><a href="#">Community</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Company</h4>
+                <ul>
+                    <li><a href="#">About HITECH</a></li>
+                    <li><a href="#">Careers</a></li>
+                    <li><a href="#">Press & News</a></li>
+                    <li><a href="#">Contact Us</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Support</h4>
+                <ul>
+                    <li><a href="#">Help & Support</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">FAQs</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="footer-bottom-inner">
+                <div class="footer-brand">
+                    <div class="footer-logo">HITECH<span>.</span></div>
+                    <span class="footer-copy">&copy; 2026 HITECH International Ltd.</span>
+                </div>
+                <div class="footer-right">
+                    <a href="#" class="social-link" aria-label="Instagram">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.8" fill="currentColor" stroke="none"/></svg>
+                    </a>
+                    <a href="#" class="social-link" aria-label="LinkedIn">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg>
+                    </a>
+                    <a href="#" class="social-link" aria-label="Facebook">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+                    </a>
+                    <span class="footer-sep">·</span>
+                    <a href="#" class="locale-link">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 3C12 3 9 7 9 12s3 9 3 9"/></svg>
+                        English
+                    </a>
+                    <a href="#" class="locale-link">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+                        INR
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- BOOKING MODAL -->
+    <div class="modal-overlay" id="bookingModal">
+        <div class="modal-card">
+            <button class="modal-close" onclick="closeBookingModal()">×</button>
+            <div class="modal-header">
+                <div style="font-size:32px;margin-bottom:12px;">📋</div>
+                <h2>Book Service</h2>
+                <p id="modalProviderName" style="color:var(--green);"></p>
+            </div>
+            <form id="bookingForm">
+                <input type="hidden" id="bookingProviderId" name="providerId">
+                <div class="field">
+                    <label for="bookingName">👤 Your Name</label>
+                    <input type="text" id="bookingName" name="customerName" placeholder="John Doe" required>
+                </div>
+                <div class="field">
+                    <label for="bookingPhone">📞 Phone Number</label>
+                    <input type="tel" id="bookingPhone" name="customerPhone" placeholder="+91 98765 43210" required>
+                </div>
+                <div class="field">
+                    <label for="bookingEmail">📧 Email Address</label>
+                    <input type="email" id="bookingEmail" name="customerEmail" placeholder="you@example.com" required>
+                </div>
+                <div class="field">
+                    <label for="bookingAddress">📍 Your Address</label>
+                    <input type="text" id="bookingAddress" name="customerAddress" placeholder="123 MG Road, City" required>
+                </div>
+                <div class="field">
+                    <label for="bookingWork">🛠️ Work Description</label>
+                    <textarea id="bookingWork" name="workDescription" placeholder="Describe the work you need done..." rows="3" required></textarea>
+                </div>
+                <button type="submit" class="hire-btn" style="margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px;">
+                    <span>📨</span> Send Booking Request
+                </button>
+            </form>
+            <p style="text-align:center;margin-top:16px;font-size:13px;color:var(--text-dim);">
+                By clicking, you agree to our <a href="#" style="color:var(--green);text-decoration:none;">Terms</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function toggleMenu() {
+            document.getElementById("navLinks").classList.toggle("active");
+        }
+
+        function handleCatClick(category) {
+            if (!navigator.geolocation) {
+                window.location.href = "/providers?category=" + encodeURIComponent(category);
+                return;
+            }
+            var overlay = document.createElement('div');
+            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;';
+            overlay.innerHTML = '<div style="background:#1A1D27;padding:30px 40px;border-radius:14px;text-align:center;border:1px solid rgba(255,255,255,0.07);"><div style="width:40px;height:40px;border:4px solid #333;border-top-color:#00C46A;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px;"></div><p style="color:#7B8094;">Getting your location...</p></div>';
+            document.body.appendChild(overlay);
+
+            navigator.geolocation.getCurrentPosition(
+                function(pos) {
+                    document.body.removeChild(overlay);
+                    var lat = pos.coords.latitude;
+                    var lng = pos.coords.longitude;
+                    window.location.href = "/providers?category=" + encodeURIComponent(category) + "&lat=" + lat + "&lng=" + lng;
+                },
+                function() {
+                    document.body.removeChild(overlay);
+                    window.location.href = "/providers?category=" + encodeURIComponent(category);
+                }
+            );
+        }
+
+        // Booking modal functions
+        function openBookingModal(providerId, providerName) {
+            document.getElementById("bookingProviderId").value = providerId;
+            document.getElementById("modalProviderName").textContent = "Book service with " + providerName;
+            document.getElementById("bookingModal").classList.add("active");
+        }
+
+        function closeBookingModal() {
+            document.getElementById("bookingModal").classList.remove("active");
+            document.getElementById("bookingForm").reset();
+        }
+
+        // Submit booking form
+        document.getElementById("bookingForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+
+            try {
+                const res = await fetch("/bookings", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                if (res.ok) {
+                    closeBookingModal();
+                    // Redirect to tracking page with phone number
+                    const phone = data.customerPhone;
+                    window.location.href = "/track-booking?phone=" + encodeURIComponent(phone);
+                } else {
+                    alert(result.msg || "Failed to send booking request");
+                }
+            } catch (err) {
+                alert("Server error");
+            }
+        });
+
+        document.addEventListener("click", function(e) {
+            var nav = document.getElementById("navLinks");
+            var ham = document.querySelector(".hamburger");
+            if (!nav.contains(e.target) && !ham.contains(e.target)) {
+                nav.classList.remove("active");
+            }
+        });
+    </script>
+</body>
+</html>

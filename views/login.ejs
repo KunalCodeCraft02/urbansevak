@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log In - HITECH</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --green: #00C46A;
+            --green-dark: #009952;
+            --green-dim: rgba(0, 196, 106, 0.12);
+            --green-glow: rgba(0, 196, 106, 0.25);
+            --bg: #0A0B0F;
+            --bg2: #0F1117;
+            --bg3: #14171F;
+            --surface: #1A1D27;
+            --surface2: #20243200;
+            --border: rgba(255,255,255,0.07);
+            --border-hover: rgba(0, 196, 106, 0.4);
+            --text: #F0F1F5;
+            --text-muted: #7B8094;
+            --text-dim: #4A4F65;
+            --white: #fff;
+            --radius: 14px;
+            --radius-sm: 8px;
+            --shadow: 0 4px 24px rgba(0,0,0,0.4);
+            --shadow-green: 0 0 40px rgba(0,196,106,0.15);
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        /* NOISE TEXTURE OVERLAY */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.35;
+        }
+
+        /* NAVBAR */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(10, 11, 15, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-inner {
+            max-width: 1400px;
+            margin: auto;
+            padding: 0 40px;
+            height: 72px;
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .logo-img { height: 36px; width: auto; display: block; }
+
+        .logo-text {
+            font-family: 'Syne', sans-serif;
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--white);
+            letter-spacing: -0.5px;
+            text-decoration: none;
+        }
+        .logo-text span { color: var(--green); }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+        }
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 500;
+            padding: 6px 14px;
+            border-radius: var(--radius-sm);
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .nav-links a:hover { color: var(--white); background: rgba(255,255,255,0.05); }
+
+        .nav-btns { display: flex; align-items: center; gap: 10px; }
+
+        .btn-ghost {
+            padding: 8px 18px;
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 500;
+            font-family: 'DM Sans', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        .btn-ghost:hover { border-color: rgba(255,255,255,0.2); color: var(--white); }
+
+        .btn-primary {
+            padding: 8px 20px;
+            background: var(--green);
+            color: #000;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 700;
+            font-family: 'DM Sans', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            letter-spacing: 0.01em;
+        }
+        .btn-primary:hover { background: #00d975; box-shadow: 0 0 20px rgba(0,196,106,0.4); }
+
+        .hamburger {
+            display: none;
+            font-size: 22px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            margin-left: auto;
+        }
+
+        /* MAIN */
+        .main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 20px;
+            position: relative;
+        }
+
+        .main::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 60% 50% at 50% 0%, rgba(0,196,106,0.08) 0%, transparent 60%),
+                linear-gradient(180deg, #0A0B0F 0%, #0C0E14 100%);
+            pointer-events: none;
+        }
+
+        /* CARD */
+        .card {
+            width: 100%;
+            max-width: 440px;
+            padding: 48px 40px;
+            text-align: center;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            position: relative;
+            z-index: 1;
+        }
+
+        .card h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--white);
+            margin-bottom: 8px;
+            letter-spacing: -1px;
+        }
+
+        .card > p {
+            font-size: 15px;
+            color: var(--text-muted);
+            margin-bottom: 36px;
+        }
+
+        /* FIELD */
+        .field { margin-bottom: 18px; text-align: left; }
+
+        .field label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .field input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 15px;
+            color: var(--text);
+            background: var(--bg2);
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .field input:focus {
+            border-color: var(--green);
+            box-shadow: 0 0 0 3px var(--green-dim);
+        }
+
+        .field input::placeholder { color: var(--text-dim); }
+
+        .pw-wrap { position: relative; }
+
+        .pw-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: var(--text-muted);
+            padding: 4px;
+            transition: color 0.2s;
+        }
+
+        .pw-toggle:hover { color: var(--green); }
+
+        /* BUTTON */
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: var(--green);
+            color: #000;
+            font-size: 16px;
+            font-weight: 700;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 8px;
+            font-family: 'DM Sans', sans-serif;
+            letter-spacing: 0.01em;
+        }
+
+        .submit-btn:hover {
+            background: #00d975;
+            box-shadow: 0 0 20px rgba(0,196,106,0.4);
+            transform: translateY(-1px);
+        }
+
+        /* FOOTER LINK */
+        .footer-text {
+            text-align: center;
+            margin-top: 28px;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .footer-text a {
+            color: var(--green);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .footer-text a:hover { text-decoration: underline; }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .nav-inner { padding: 0 20px; height: 64px; gap: 12px; }
+            .nav-links {
+                position: fixed;
+                top: 64px; left: 0; right: 0;
+                background: rgba(10,11,15,0.98);
+                backdrop-filter: blur(20px);
+                flex-direction: column;
+                padding: 20px;
+                gap: 8px;
+                border-bottom: 1px solid var(--border);
+                display: none;
+                z-index: 999;
+            }
+            .nav-links.active { display: flex; }
+            .nav-links a { padding: 10px 16px; border-radius: var(--radius-sm); }
+            .nav-btns { margin-left: auto; }
+            .hamburger { display: block; }
+            .main { padding: 60px 16px; }
+            .card { padding: 36px 24px; }
+            .card h1 { font-size: 26px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="nav-inner">
+            <a href="/">
+                <img src="/assets/logo.png" alt="HITECH" class="logo-img" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+                <span class="logo-text" style="display:none">HI<span>TECH</span></span>
+            </a>
+            <div class="nav-links" id="navLinks">
+                <a href="/">Home</a>
+                <a href="/signupas">Sign Up</a>
+            </div>
+            <div class="nav-btns">
+                <a href="/sprovidersignup" class="btn-ghost">Become a Provider</a>
+                <button class="btn-primary" onclick="location.href='/signupas'">Join Free</button>
+            </div>
+            <button class="hamburger" onclick="toggleMenu()">&#9776;</button>
+        </div>
+    </nav>
+
+    <!-- MAIN -->
+    <main class="main">
+        <div class="card">
+            <h1>Welcome Back</h1>
+            <p>Log in to continue your journey</p>
+
+            <form method="post" action="/login" id="loginForm">
+                <div class="field">
+                    <label for="email">Email</label>
+                    <input name="email" id="email" type="email" placeholder="you@example.com" required>
+                </div>
+                <div class="field">
+                    <label for="password">Password</label>
+                    <div class="pw-wrap">
+                        <input name="password" id="password" type="password" placeholder="Enter password" required>
+                        <button type="button" class="pw-toggle" onclick="togglePassword()">&#128065;</button>
+                    </div>
+                </div>
+                <button type="submit" class="submit-btn">Log In</button>
+            </form>
+
+            <div class="footer-text">
+                Don't have an account? <a href="/signupas">Sign up</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function toggleMenu() {
+            document.getElementById("navLinks").classList.toggle("active");
+        }
+
+        function togglePassword() {
+            const pw = document.getElementById("password");
+            pw.type = pw.type === "password" ? "text" : "password";
+        }
+
+        document.getElementById("loginForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+            try {
+                const res = await fetch("/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                if (res.ok) {
+                    alert("Login successful!");
+                    window.location.href = "/";
+                } else {
+                    alert(result.msg || "Login failed");
+                }
+            } catch (err) {
+                alert("Server error");
+            }
+        });
+
+        document.addEventListener("click", function(e) {
+            const nav = document.getElementById("navLinks");
+            const ham = document.querySelector(".hamburger");
+            if (!nav.contains(e.target) && !ham.contains(e.target)) {
+                nav.classList.remove("active");
+            }
+        });
+    </script>
+</body>
+</html>

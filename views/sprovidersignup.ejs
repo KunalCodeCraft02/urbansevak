@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Provider Sign Up - HITECH</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --green: #00C46A;
+            --green-dark: #009952;
+            --green-dim: rgba(0, 196, 106, 0.12);
+            --green-glow: rgba(0, 196, 106, 0.25);
+            --bg: #0A0B0F;
+            --bg2: #0F1117;
+            --bg3: #14171F;
+            --surface: #1A1D27;
+            --surface2: #20243200;
+            --border: rgba(255,255,255,0.07);
+            --border-hover: rgba(0, 196, 106, 0.4);
+            --text: #F0F1F5;
+            --text-muted: #7B8094;
+            --text-dim: #4A4F65;
+            --white: #fff;
+            --radius: 14px;
+            --radius-sm: 8px;
+            --shadow: 0 4px 24px rgba(0,0,0,0.4);
+            --shadow-green: 0 0 40px rgba(0,196,106,0.15);
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        /* NOISE TEXTURE OVERLAY */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.35;
+        }
+
+        /* NAVBAR */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(10, 11, 15, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-inner {
+            max-width: 1400px;
+            margin: auto;
+            padding: 0 40px;
+            height: 72px;
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .logo-img { height: 36px; width: auto; display: block; }
+
+        .logo-text {
+            font-family: 'Syne', sans-serif;
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--white);
+            letter-spacing: -0.5px;
+            text-decoration: none;
+        }
+        .logo-text span { color: var(--green); }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+        }
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 500;
+            padding: 6px 14px;
+            border-radius: var(--radius-sm);
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .nav-links a:hover { color: var(--white); background: rgba(255,255,255,0.05); }
+
+        .nav-btns { display: flex; align-items: center; gap: 10px; }
+
+        .btn-ghost {
+            padding: 8px 18px;
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 500;
+            font-family: 'DM Sans', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        .btn-ghost:hover { border-color: rgba(255,255,255,0.2); color: var(--white); }
+
+        .btn-primary {
+            padding: 8px 20px;
+            background: var(--green);
+            color: #000;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 700;
+            font-family: 'DM Sans', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            letter-spacing: 0.01em;
+        }
+        .btn-primary:hover { background: #00d975; box-shadow: 0 0 20px rgba(0,196,106,0.4); }
+
+        .hamburger {
+            display: none;
+            font-size: 22px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            margin-left: auto;
+        }
+
+        /* MAIN */
+        .main {
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 60px 20px 80px;
+            position: relative;
+        }
+
+        .main::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 60% 50% at 50% 0%, rgba(0,196,106,0.08) 0%, transparent 60%),
+                linear-gradient(180deg, #0A0B0F 0%, #0C0E14 100%);
+            pointer-events: none;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 48px 44px;
+            width: 100%;
+            max-width: 560px;
+            position: relative;
+            z-index: 1;
+            animation: fadeUp 0.5s ease both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card-header {
+            margin-bottom: 32px;
+            text-align: center;
+        }
+
+        .card-header h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--white);
+            letter-spacing: -1px;
+            margin-bottom: 8px;
+        }
+
+        .card-header p {
+            color: var(--text-muted);
+            font-size: 15px;
+        }
+
+        /* SECTION LABELS */
+        .section-label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--green);
+            background: var(--green-dim);
+            padding: 5px 12px;
+            border-radius: 6px;
+            display: inline-block;
+            margin: 24px 0 16px;
+        }
+
+        /* FIELD */
+        .field { margin-bottom: 18px; }
+
+        .field label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .field input,
+        .field select,
+        .field textarea {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
+            color: var(--text);
+            background: var(--bg2);
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .field input:focus,
+        .field select:focus,
+        .field textarea:focus {
+            border-color: var(--green);
+            box-shadow: 0 0 0 3px var(--green-dim);
+        }
+
+        .field input::placeholder,
+        .field textarea::placeholder { color: var(--text-dim); }
+
+        textarea { resize: vertical; min-height: 70px; }
+
+        .pw-wrap { position: relative; }
+
+        .pw-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: var(--text-muted);
+            padding: 4px;
+            transition: color 0.2s;
+        }
+
+        .pw-toggle:hover { color: var(--green); }
+
+        /* ROW LAYOUT */
+        .row { display: flex; gap: 14px; }
+
+        .row .field { flex: 1; }
+
+        /* SELECT WRAPPER */
+        .select-wrap { position: relative; }
+
+        .select-wrap::after {
+            content: '';
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 6px solid var(--text-muted);
+            pointer-events: none;
+        }
+
+        .select-wrap select {
+            padding-right: 40px;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+
+        .select-wrap select option { background: var(--bg3); }
+
+        /* SERVICES BOX */
+        .services-box {
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--bg2);
+            padding: 12px 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .services-box:focus-within {
+            border-color: var(--green);
+            box-shadow: 0 0 0 3px var(--green-dim);
+        }
+
+        .tags-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 10px;
+            min-height: 0;
+        }
+
+        .tag {
+            background: var(--green-dim);
+            color: var(--green);
+            font-size: 12px;
+            font-weight: 500;
+            padding: 4px 12px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tag-remove {
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 1;
+            color: var(--green);
+            background: none;
+            border: none;
+            padding: 0;
+            font-weight: 700;
+        }
+
+        .services-select {
+            border: none;
+            background: transparent;
+            box-shadow: none;
+            backdrop-filter: none;
+            padding: 4px 0;
+            font-size: 14px;
+            color: var(--text-muted);
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .services-select:focus {
+            box-shadow: none;
+            border: none;
+            background: transparent;
+        }
+
+        /* FILE UPLOAD */
+        .file-field {
+            border: 1.5px dashed var(--border);
+            border-radius: var(--radius-sm);
+            background: rgba(255,255,255,0.02);
+            padding: 20px 14px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+            position: relative;
+        }
+
+        .file-field:hover {
+            border-color: var(--green);
+            background: var(--green-dim);
+        }
+
+        .file-field input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: none;
+            padding: 0;
+        }
+
+        .file-icon { font-size: 24px; margin-bottom: 6px; }
+
+        .file-text { font-size: 14px; color: var(--text-muted); }
+
+        .file-name {
+            font-size: 13px;
+            color: var(--green);
+            font-weight: 500;
+            margin-top: 6px;
+            display: none;
+        }
+
+        /* LOCATION */
+        .loc-btn {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-muted);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+            margin-top: 4px;
+        }
+
+        .loc-btn:hover {
+            border-color: var(--green);
+            color: var(--green);
+            background: var(--green-dim);
+        }
+
+        .loc-status {
+            font-size: 13px;
+            color: var(--green);
+            margin-top: 6px;
+            min-height: 16px;
+            font-weight: 500;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .loc-status.show { opacity: 1; }
+        .loc-status.error { color: #e74c3c; }
+
+        /* SUBMIT */
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: var(--green);
+            border: none;
+            border-radius: var(--radius-sm);
+            color: #000;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 12px;
+            transition: all 0.2s;
+            letter-spacing: 0.01em;
+        }
+
+        .submit-btn:hover {
+            background: #00d975;
+            box-shadow: 0 0 20px rgba(0,196,106,0.4);
+            transform: translateY(-1px);
+        }
+
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 28px 0 20px;
+        }
+
+        .signin-link {
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .signin-link a {
+            color: var(--green);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .signin-link a:hover { text-decoration: underline; }
+
+        .error-msg {
+            font-size: 12px;
+            color: #e74c3c;
+            margin-top: 4px;
+            display: none;
+        }
+
+        .field.has-error input,
+        .field.has-error select { border-color: #e74c3c; }
+
+        .field.has-error .error-msg { display: block; }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .nav-inner { padding: 0 20px; height: 64px; gap: 12px; }
+            .nav-links {
+                position: fixed;
+                top: 64px; left: 0; right: 0;
+                background: rgba(10,11,15,0.98);
+                backdrop-filter: blur(20px);
+                flex-direction: column;
+                padding: 20px;
+                gap: 8px;
+                border-bottom: 1px solid var(--border);
+                display: none;
+                z-index: 999;
+            }
+            .nav-links.active { display: flex; }
+            .nav-links a { padding: 10px 16px; border-radius: var(--radius-sm); }
+            .nav-btns { margin-left: auto; }
+            .hamburger { display: block; }
+            .main { padding: 40px 16px 60px; }
+            .card { padding: 36px 24px; }
+            .card-header h1 { font-size: 26px; }
+            .row { flex-direction: column; gap: 0; }
+        }
+
+        @media (max-width: 480px) {
+            .card { padding: 28px 18px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="nav-inner">
+            <a href="/">
+                <img src="/assets/logo.png" alt="HITECH" class="logo-img" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+                <span class="logo-text" style="display:none">HI<span>TECH</span></span>
+            </a>
+            <div class="nav-links" id="navLinks">
+                <a href="/">Home</a>
+                <a href="/login">Log In</a>
+                <a href="/signupas">Sign Up</a>
+            </div>
+            <div class="nav-btns">
+                <a href="/sprovidersignup" class="btn-primary">Become a Provider</a>
+            </div>
+            <button class="hamburger" onclick="toggleMenu()">&#9776;</button>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <div class="main">
+        <div class="card">
+            <div class="card-header">
+                <h1>Provider Sign Up</h1>
+                <p>Join as a service professional and start earning.</p>
+            </div>
+
+            <form id="providerForm" method="post" action="/providersignup" enctype="multipart/form-data" novalidate>
+
+                <!-- CREDENTIALS -->
+                <span class="section-label">&#128274; Basic Info</span>
+
+                <div class="field" id="f-name">
+                    <label for="name">Full Name</label>
+                    <input id="name" name="name" type="text" placeholder="Ravi Kumar" autocomplete="name" required>
+                    <span class="error-msg">Name is required.</span>
+                </div>
+
+                <div class="field" id="f-email">
+                    <label for="email">Email Address</label>
+                    <input id="email" name="email" type="email" placeholder="ravi@example.com" autocomplete="email" required>
+                    <span class="error-msg">Enter a valid email.</span>
+                </div>
+
+                <div class="field" id="f-password">
+                    <label for="password">Password</label>
+                    <div class="pw-wrap">
+                        <input id="password" name="password" type="password" placeholder="Min. 8 characters" autocomplete="new-password" required>
+                        <button type="button" class="pw-toggle" id="pwToggle"><span id="eyeIcon">&#128065;</span></button>
+                    </div>
+                    <span class="error-msg">Password must be at least 8 characters.</span>
+                </div>
+
+                <div class="row">
+                    <div class="field" id="f-phone">
+                        <label for="phone">Phone</label>
+                        <input id="phone" name="phone" type="tel" placeholder="+91 98765 43210" autocomplete="tel" required>
+                        <span class="error-msg">Phone is required.</span>
+                    </div>
+                    <div class="field" id="f-experience">
+                        <label for="experience">Experience (years)</label>
+                        <input id="experience" name="experience" type="number" placeholder="3" min="0" max="60">
+                        <span class="error-msg">Required.</span>
+                    </div>
+                </div>
+
+                <div class="field" id="f-address">
+                    <label for="address">Address</label>
+                    <input id="address" name="address" type="text" placeholder="123 MG Road, Pune" autocomplete="street-address" required>
+                    <span class="error-msg">Address is required.</span>
+                </div>
+
+                <!-- SERVICES -->
+                <span class="section-label">&#128736; Services</span>
+
+                <div class="field" id="f-services">
+                    <label>Select Services <span style="font-size:11px;text-transform:none;font-weight:400">(pick one or more)</span></label>
+                    <div class="services-box">
+                        <div class="tags-row" id="tagsRow"></div>
+                        <div class="select-wrap">
+                            <select id="servicesSelect" name="services_select" class="services-select">
+                                <option value="">— Choose a service —</option>
+                                <optgroup label="&#127968; Home & Maintenance">
+                                    <option value="Elder care">Elder care</option>
+                                    <option value="Plumber">Plumber</option>
+                                    <option value="Electrician">Electrician</option>
+                                    <option value="Gardener">Gardener</option>
+                                    <option value="House cleaning / maid">House cleaning / maid</option>
+                                </optgroup>
+                                <optgroup label="&#129529; On-demand Workers">
+                                    <option value="Daily wage worker">Daily wage worker</option>
+                                    <option value="Movers & packers">Movers & packers</option>
+                                    <option value="Construction labor">Construction labor</option>
+                                </optgroup>
+                                <optgroup label="&#128187; Digital Services">
+                                    <option value="Website developer">Website developer</option>
+                                    <option value="Content creator">Content creator</option>
+                                </optgroup>
+                                <optgroup label="&#128054; Pet Services">
+                                    <option value="Pet grooming">Pet grooming</option>
+                                    <option value="Dog walking">Dog walking</option>
+                                </optgroup>
+                                <optgroup label="&#127973; Health & Wellness">
+                                    <option value="Doctor (General / Specialist)">Doctor (General / Specialist)</option>
+                                    <option value="Personal coach">Personal coach</option>
+                                    <option value="Home nursing">Home nursing</option>
+                                </optgroup>
+                                <optgroup label="&#128664; Automobile Services">
+                                    <option value="Car repair & servicing">Car repair & servicing</option>
+                                    <option value="Bike repair">Bike repair</option>
+                                    <option value="Car wash / bike wash">Car wash / bike wash</option>
+                                    <option value="Taxi / cab driver">Taxi / cab driver</option>
+                                </optgroup>
+                                <optgroup label="&#128218; Education & Learning">
+                                    <option value="Home tutor">Home tutor</option>
+                                    <option value="Online tutor">Online tutor</option>
+                                </optgroup>
+                                <optgroup label="&#127881; Events">
+                                    <option value="Wedding decorator">Wedding decorator</option>
+                                    <option value="Photographer / videographer">Photographer / videographer</option>
+                                    <option value="Makeup artist">Makeup artist</option>
+                                </optgroup>
+                                <optgroup label="&#9881; Professional Services">
+                                    <option value="Lawyer">Lawyer</option>
+                                    <option value="Security guard / watchman">Security guard / watchman</option>
+                                </optgroup>
+                                <optgroup label="&#128241; Utility & Technology">
+                                    <option value="Courier / delivery">Courier / delivery</option>
+                                    <option value="Computer / laptop repair">Computer / laptop repair</option>
+                                    <option value="Mobile repair">Mobile repair</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                    </div>
+                    <span class="error-msg" id="services-error">Select at least one service.</span>
+                </div>
+
+                <!-- LOCATION -->
+                <span class="section-label">&#128205; Location</span>
+
+                <div class="field">
+                    <label>Coordinates</label>
+                    <div class="row">
+                        <div class="field" style="margin-bottom:0">
+                            <input id="lat" name="latitude" type="text" placeholder="Latitude" readonly>
+                        </div>
+                        <div class="field" style="margin-bottom:0">
+                            <input id="lng" name="longitude" type="text" placeholder="Longitude" readonly>
+                        </div>
+                    </div>
+                    <button type="button" class="loc-btn" id="locBtn" onclick="getLocation()">
+                        <span>&#128205;</span> Use My Location
+                    </button>
+                    <p class="loc-status" id="locStatus"></p>
+                </div>
+
+                <!-- VERIFICATION -->
+                <span class="section-label">&#128248; Verification</span>
+
+                <div class="field" id="f-aadhaar">
+                    <label for="aadhaarNumber">Aadhaar Number</label>
+                    <input id="aadhaarNumber" name="aadhaarNumber" type="text" placeholder="XXXX XXXX XXXX" maxlength="14">
+                    <span class="error-msg">Enter a valid 12-digit Aadhaar number.</span>
+                </div>
+
+                <div class="field">
+                    <label>Aadhaar Card Image</label>
+                    <div class="file-field" id="aadhaarDropzone">
+                        <input type="file" name="aadhaarImage" id="aadhaarImage" accept="image/*,.pdf" onchange="handleFile(this,'aadhaarName')">
+                        <div class="file-icon">&#128196;</div>
+                        <div class="file-text">Click or drag to upload Aadhaar</div>
+                        <div class="file-name" id="aadhaarName"></div>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label>Profile Photo</label>
+                    <div class="file-field" id="profileDropzone">
+                        <input type="file" name="profileImage" id="profileImage" accept="image/*" onchange="handleFile(this,'profileName')">
+                        <div class="file-icon">&#128247;</div>
+                        <div class="file-text">Click or drag to upload your photo</div>
+                        <div class="file-name" id="profileName"></div>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">Create Provider Account</button>
+
+                <div class="divider"></div>
+                <p class="signin-link">Already registered? <a href="/login">Sign in</a></p>
+
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let userLat = null, userLng = null;
+        let selectedServices = [];
+
+        // Password toggle
+        document.getElementById('pwToggle').addEventListener('click', () => {
+            const pw = document.getElementById('password');
+            const icon = document.getElementById('eyeIcon');
+            pw.type = pw.type === 'password' ? 'text' : 'password';
+            icon.textContent = pw.type === 'password' ? '&#128065;' : '&#128064;';
+        });
+
+        // Aadhaar format
+        document.getElementById('aadhaarNumber').addEventListener('input', function () {
+            let val = this.value.replace(/\D/g, '').substring(0, 12);
+            this.value = val.replace(/(\d{4})(?=\d)/g, '$1 ').trim();
+        });
+
+        // Services select
+        document.getElementById('servicesSelect').addEventListener('change', function () {
+            const val = this.value;
+            if (!val || selectedServices.includes(val)) { this.value = ''; return; }
+            selectedServices.push(val);
+            renderTags();
+            this.value = '';
+        });
+
+        function renderTags() {
+            const row = document.getElementById('tagsRow');
+            row.innerHTML = selectedServices.map((s, i) =>
+                `<span class="tag">${s}<button type="button" onclick="removeTag(${i})">&times;</button></span>`
+            ).join('');
+        }
+
+        function removeTag(i) {
+            selectedServices.splice(i, 1);
+            renderTags();
+        }
+
+        // File preview
+        function handleFile(input, nameId) {
+            const nameEl = document.getElementById(nameId);
+            if (input.files && input.files[0]) {
+                nameEl.textContent = '✅ ' + input.files[0].name;
+                nameEl.style.display = 'block';
+            }
+        }
+
+        // Location
+        function getLocation() {
+            if (!navigator.geolocation) {
+                alert("Geolocation is not supported by your browser.");
+                return;
+            }
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    userLat = pos.coords.latitude;
+                    userLng = pos.coords.longitude;
+                    document.getElementById('lat').value = userLat;
+                    document.getElementById('lng').value = userLng;
+                    const status = document.getElementById('locStatus');
+                    status.textContent = '✅ Location captured';
+                    status.classList.add('show');
+                },
+                () => {
+                    const status = document.getElementById('locStatus');
+                    status.textContent = '❌ Location permission denied';
+                    status.classList.add('show', 'error');
+                }
+            );
+        }
+
+        // Validation
+        function validate() {
+            if (!userLat || !userLng) {
+                alert("Please click 'Use My Location' to capture your location.");
+                return false;
+            }
+            if (selectedServices.length === 0) {
+                alert("Please select at least one service.");
+                return false;
+            }
+            return true;
+        }
+
+        // Submit
+        document.getElementById('providerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!validate()) return;
+
+            const formData = new FormData();
+            formData.append('name', document.getElementById('name').value);
+            formData.append('email', document.getElementById('email').value);
+            formData.append('password', document.getElementById('password').value);
+            formData.append('phone', document.getElementById('phone').value);
+            formData.append('address', document.getElementById('address').value);
+            formData.append('experience', document.getElementById('experience').value);
+            formData.append('aadhaarNumber', document.getElementById('aadhaarNumber').value.replace(/\s/g, ''));
+            formData.append('services', selectedServices.join(","));
+            formData.append('lat', userLat);
+            formData.append('lng', userLng);
+
+            const aadhaarFile = document.getElementById('aadhaarImage').files[0];
+            const profileFile = document.getElementById('profileImage').files[0];
+            if (aadhaarFile) formData.append('aadhaarImage', aadhaarFile);
+            if (profileFile) formData.append('profileImage', profileFile);
+
+            try {
+                const res = await fetch("/providersignup", {
+                    method: "POST",
+                    body: formData
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    alert(data.msg || "Signup failed");
+                    return;
+                }
+                alert("Provider signup successful! 🎉");
+                window.location.href = data.redirect || "/provideradmin";
+            } catch (err) {
+                console.error(err);
+                alert("Server error");
+            }
+        });
+
+        function toggleMenu() {
+            document.getElementById("navLinks").classList.toggle("active");
+        }
+
+        document.addEventListener("click", function(e) {
+            const nav = document.getElementById("navLinks");
+            const ham = document.querySelector(".hamburger");
+            if (!nav.contains(e.target) && !ham.contains(e.target)) {
+                nav.classList.remove("active");
+            }
+        });
+    </script>
+</body>
+</html>
