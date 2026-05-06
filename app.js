@@ -12,6 +12,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const Provider = require("./models/serviceprovider");
 const Booking = require("./models/booking");
+const SuperAdmin = require("./models/superadmin");
 const nodemailer = require("nodemailer");
 const { categories, getCategoryFromServices } = require("./config/serviceCategories");
 
@@ -33,7 +34,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 app.set("view engine", "ejs");
 
-// Authentication Middleware
+// Provider Authentication Middleware
 const authenticateToken = async (req, res, next) => {
   try {
     const token = req.cookies.token || (req.headers.authorization && req.headers.authorization.split(" ")[1]);
@@ -42,6 +43,12 @@ const authenticateToken = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET || "secretkey");
+
+    // Check if it's a provider
+    if (decoded.role !== "provider") {
+      return res.redirect("/providerlogin");
+    }
+
     const provider = await Provider.findById(decoded.id);
     if (!provider) {
       return res.redirect("/providerlogin");
@@ -54,10 +61,41 @@ const authenticateToken = async (req, res, next) => {
   }
 };
 
+// User Authentication Middleware
+const authenticateUser = async (req, res, next) => {
+  try {
+    const token = req.cookies.token || (req.headers.authorization && req.headers.authorization.split(" ")[1]);
+    if (!token) {
+      return res.redirect("/login");
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "secretkey");
+
+    // Check if it's a user
+    if (decoded.role !== "user") {
+      return res.redirect("/login");
+    }
+
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return res.redirect("/login");
+    }
+
+    req.user = user;
+    next();
+  } catch (err) {
+    return res.redirect("/login");
+  }
+};
+
 // GET ROUTES
 
 app.get("/", (req, res) => {
   res.render("index", { categories });
+});
+
+app.get("/home", authenticateUser, (req, res) => {
+  res.render("home", { categories });
 });
 
 app.get("/signup", (req, res) => {
@@ -81,7 +119,21 @@ app.get("/providerlogin", (req, res) => {
 });
 
 app.get("/provideradmin", authenticateToken, async (req, res) => {
-  res.render("provideradmin", { provider: req.provider });
+  try {
+    const pendingCount = await Booking.countDocuments({ provider: req.provider._id, status: "pending" });
+    const acceptedCount = await Booking.countDocuments({ provider: req.provider._id, status: "accepted" });
+    const completedCount = await Booking.countDocuments({ provider: req.provider._id, status: "completed" });
+
+    res.render("provideradmin", {
+      provider: req.provider,
+      pendingCount,
+      acceptedCount,
+      completedCount
+    });
+  } catch (err) {
+    console.error(err);
+    res.render("provideradmin", { provider: req.provider, pendingCount: 0, acceptedCount: 0, completedCount: 0 });
+  }
 });
 
 // GET /providers - List providers by category, sorted by distance
@@ -90,14 +142,28 @@ app.get("/providers", async (req, res) => {
   try {
     const { category, lat, lng } = req.query;
 
+    // Check if user is authenticated
+    let user = null;
+    try {
+      const token = req.cookies.token;
+      if (token) {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || "secretkey");
+        if (decoded.role === "user") {
+          user = await User.findById(decoded.id);
+        }
+      }
+    } catch (e) {
+      // User not authenticated, continue without user
+    }
+
     if (!category) {
-      return res.render("providers", { providers: [], category: null, lat: null, lng: null });
+      return res.render("providers", { providers: [], category: null, lat: null, lng: null, user });
     }
 
     // If no location provided, just filter by category
     if (!lat || !lng) {
       const providers = await Provider.find({ category });
-      return res.render("providers", { providers, category, lat: null, lng: null });
+      return res.render("providers", { providers, category, lat: null, lng: null, user });
     }
 
     const userLat = parseFloat(lat);
@@ -106,7 +172,7 @@ app.get("/providers", async (req, res) => {
     // Validate coordinates
     if (isNaN(userLat) || isNaN(userLng)) {
       const providers = await Provider.find({ category });
-      return res.render("providers", { providers, category, lat: null, lng: null });
+      return res.render("providers", { providers, category, lat: null, lng: null, user });
     }
 
     // Use MongoDB geoNear aggregation to find providers within 10km, sorted by distance
@@ -125,7 +191,7 @@ app.get("/providers", async (req, res) => {
       }
     ]);
 
-    res.render("providers", { providers, category, lat: userLat, lng: userLng });
+    res.render("providers", { providers, category, lat: userLat, lng: userLng, user });
 
   } catch (err) {
     console.error(err);
@@ -180,7 +246,13 @@ app.post("/signup", async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    res.status(201).json({ token, user });
+    // Set token in cookie
+    res.cookie("token", token, {
+      httpOnly: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
+
+    res.status(201).json({ msg: "Signup successful", redirect: "/home" });
 
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -211,7 +283,13 @@ app.post("/login", async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    res.json({ token, user });
+    // Set token in cookie
+    res.cookie("token", token, {
+      httpOnly: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
+
+    res.json({ msg: "Login successful", redirect: "/home" });
 
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -273,7 +351,10 @@ app.post(
         experience,
         aadhaarNumber,
         lat,
-        lng
+        lng,
+        priceMin,
+        priceMax,
+        priceUnit
       } = req.body;
 
       if (!name || !email || !password || !phone || !address) {
@@ -322,7 +403,10 @@ app.post(
 
       await provider.save();
 
-      // Auto-login after signup
+      // Provider is pending approval - notify SuperAdmin
+      // TODO: Send email todo SuperAdmin
+
+      res.status(201).json({ msg: "Provider signup successful. Awaiting admin approval.", redirect: "/providerlogin" });
       const token = jwt.sign(
         { id: provider._id, role: "provider" },
         process.env.JWT_SECRET || "secretkey",
@@ -348,7 +432,7 @@ app.post(
 // POST /bookings - Create a new booking request
 app.post("/bookings", async (req, res) => {
   try {
-    const { providerId, customerName, customerPhone, customerEmail, customerAddress, workDescription } = req.body;
+    const { providerId, customerName, customerPhone, customerEmail, customerAddress, workDescription, customerId } = req.body;
 
     if (!providerId || !customerName || !customerPhone || !customerEmail || !customerAddress || !workDescription) {
       return res.status(400).json({ msg: "All fields are required" });
@@ -359,7 +443,7 @@ app.post("/bookings", async (req, res) => {
       return res.status(404).json({ msg: "Provider not found" });
     }
 
-    const booking = new Booking({
+    const bookingData = {
       provider: providerId,
       customerName,
       customerPhone,
@@ -367,13 +451,29 @@ app.post("/bookings", async (req, res) => {
       customerAddress,
       workDescription,
       status: "pending"
-    });
+    };
 
+    // Link to user if customerId is provided
+    if (customerId) {
+      bookingData.customer = customerId;
+    }
+
+    const booking = new Booking(bookingData);
     await booking.save();
 
     res.status(201).json({ msg: "Booking request sent successfully", booking });
   } catch (err) {
     console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/user/bookings - Get all bookings for the logged-in user
+app.get("/api/user/bookings", authenticateUser, async (req, res) => {
+  try {
+    const bookings = await Booking.find({ customer: req.user._id }).populate('provider').sort({ createdAt: -1 });
+    res.json(bookings);
+  } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
@@ -502,17 +602,53 @@ app.post("/api/bookings/:id/reject", authenticateToken, async (req, res) => {
   }
 });
 
-// POST /api/bookings/:id/complete - Mark booking as completed
-app.post("/api/bookings/:id/complete", async (req, res) => {
+// POST /api/bookings/:id/complete - Mark booking as completed (user only)
+app.post("/api/bookings/:id/complete", authenticateUser, async (req, res) => {
   try {
-    const booking = await Booking.findById(req.params.id);
+    const booking = await Booking.findById(req.params.id).populate('provider');
     if (!booking) {
       return res.status(404).json({ msg: "Booking not found" });
+    }
+
+    // Verify the booking belongs to the logged-in user
+    if (booking.customer && booking.customer.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ msg: "Not authorized to complete this booking" });
     }
 
     booking.status = "completed";
     booking.completedAt = new Date();
     await booking.save();
+
+    // Send notification email to provider
+    if (booking.provider && booking.provider.email) {
+      try {
+        await transporter.sendMail({
+          from: process.env.EMAIL_USER,
+          to: booking.provider.email,
+          subject: "HITECH - Work Marked as Completed",
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #0A0B0F; color: #F0F1F5;">
+              <div style="text-align: center; margin-bottom: 30px;">
+                <h1 style="color: #00C46A; font-family: 'Syne', sans-serif;">HITECH</h1>
+              </div>
+              <div style="background: #1A1D27; padding: 30px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.07);">
+                <h2 style="color: #fff; margin-bottom: 10px;">Work Completed! ✅</h2>
+                <p style="color: #7B8094; margin-bottom: 20px;">The customer has marked the following work as completed:</p>
+                <div style="margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.03); border-radius: 8px;">
+                  <p style="margin: 5px 0; color: #7B8094;"><strong style="color: #F0F1F5;">Work:</strong> ${booking.workDescription}</p>
+                  <p style="margin: 5px 0; color: #7B8094;"><strong style="color: #F0F1F5;">Customer:</strong> ${booking.customerName}</p>
+                  <p style="margin: 5px 0; color: #7B8094;"><strong style="color: #F0F1F5;">Address:</strong> ${booking.customerAddress}</p>
+                </div>
+                <p style="color: #7B8094; font-size: 13px;">Your completed jobs count has been updated.</p>
+              </div>
+            </div>
+          `
+        });
+        console.log(`Completion email sent to provider: ${booking.provider.email}`);
+      } catch (emailErr) {
+        console.error("Failed to send email to provider:", emailErr);
+      }
+    }
 
     res.json({ msg: "Booking marked as completed." });
   } catch (err) {
@@ -531,11 +667,174 @@ app.get("/api/bookings-by-phone/:phone", async (req, res) => {
   }
 });
 
-// GET /track-booking - Customer booking status tracking page
-app.get("/track-booking", (req, res) => {
-  res.render("track-booking");
+// GET /track-booking - Customer booking status tracking page (protected)
+app.get("/track-booking", authenticateUser, async (req, res) => {
+  try {
+    const bookings = await Booking.find({ customer: req.user._id }).populate('provider').sort({ createdAt: -1 });
+    res.render("track-booking", { bookings });
+  } catch (err) {
+    console.error(err);
+    res.render("track-booking", { bookings: [] });
+  }
 });
 
-
+// GET /logout - Logout user and clear cookie
+app.get("/logout", (req, res) => {
+  res.clearCookie("token");
+  res.redirect("/");
+});
 
 app.listen(5000, () => console.log("Server running on port 5000"));
+
+// ════ SUPER ADMIN ROUTES ════
+
+// POST /superadmin/login - SuperAdmin login
+app.post("/superadmin/login", async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    if (!username || !password) {
+      return res.status(400).json({ msg: "Username and password required" });
+    }
+    const admin = await SuperAdmin.findOne({ username });
+    if (!admin) {
+      return res.status(400).json({ msg: "Invalid credentials" });
+    }
+    const isMatch = await bcrypt.compare(password, admin.password);
+    if (!isMatch) {
+      return res.status(400).json({ msg: "Invalid credentials" });
+    }
+    const token = jwt.sign(
+      { id: admin._id, role: "superadmin" },
+      process.env.JWT_SECRET || "secretkey",
+      { expiresIn: "7d" }
+    );
+    res.cookie("token", token, {
+      httpOnly: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+    res.json({ msg: "Login successful", redirect: "/superadmin/dashboard" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /superadmin - SuperAdmin login page
+app.get("/superadmin", (req, res) => {
+  res.render("superadmin-login");
+});
+
+// GET /superadmin/dashboard - List pending providers (protected)
+app.get("/superadmin/dashboard", async (req, res) => {
+  try {
+    // Simple auth check (for now, just check if there's a valid admin token)
+    const token = req.cookies.token;
+    if (!token) return res.redirect("/superadmin");
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "secretkey");
+    if (decoded.role !== "superadmin") return res.redirect("/superadmin");
+
+    const pendingProviders = await Provider.find({ status: "pending" }).sort({ createdAt: -1 });
+    const approvedProviders = await Provider.find({ status: "approved" }).sort({ createdAt: -1 });
+    const rejectedProviders = await Provider.find({ status: "rejected" }).sort({ createdAt: -1 });
+
+    res.render("superadmin-dashboard", { pendingProviders, approvedProviders, rejectedProviders });
+  } catch (err) {
+    res.redirect("/superadmin");
+  }
+});
+
+// POST /superadmin/approve/:id - Approve a provider
+app.post("/superadmin/approve/:id", async (req, res) => {
+  try {
+    const provider = await Provider.findById(req.params.id);
+    if (!provider) {
+      return res.status(404).json({ msg: "Provider not found" });
+    }
+
+    provider.status = "approved";
+    await provider.save();
+
+    // Send approval email
+    try {
+      await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: provider.email,
+        subject: "URBAN SEVAK - Your Application is Approved!",
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #0A0B0F; color: #F0F1F5;">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #00C46A; font-family: 'Syne', sans-serif;">URBAN SEVAK</h1>
+            </div>
+            <div style="background: #1A1D27; padding: 30px; border-radius: 14px; border: 1px solid rgba(0,196,106,0.3);">
+              <h2 style="color: #fff; margin-bottom: 10px;">✅ Application Approved!</h2>
+              <p style="color: #7B8094; margin-bottom: 20px;">
+                Congratulations! Your application to join URBAN SEVAK as a service provider has been approved.
+              </p>
+              <div style="background: rgba(0,196,106,0.1); border: 1px solid rgba(0,196,106,0.3); border-radius: 8px; padding: 20px; text-align: center; margin: 20px 0;">
+                <p style="color: #7B8094; margin: 0 0 8px 0; font-size: 14px;">You can now login using your credentials</p>
+                <a href="${process.env.BASE_URL || 'http://localhost:5000'}/providerlogin" style="display: inline-block; padding: 12px 32px; background: #00C46A; color: #000; text-decoration: none; border-radius: 8px; font-weight: 700; margin-top: 12px;">Login Now</a>
+              </div>
+            </div>
+          </div>
+        `
+      });
+      console.log(`Approval email sent to: ${provider.email}`);
+    } catch (emailErr) {
+      console.error("Failed to send approval email:", emailErr);
+    }
+
+    res.json({ msg: "Provider approved successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /superadmin/reject/:id - Reject a provider
+app.post("/superadmin/reject/:id", async (req, res) => {
+  try {
+    const { reason } = req.body;
+    const provider = await Provider.findById(req.params.id);
+    if (!provider) {
+      return res.status(404).json({ msg: "Provider not found" });
+    }
+
+    provider.status = "rejected";
+    provider.rejectionReason = reason || "No reason provided";
+    await provider.save();
+
+    // Send rejection email
+    try {
+      await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: provider.email,
+        subject: "URBAN SEVAK - Application Update",
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #0A0B0F; color: #F0F1F5;">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #00C46A; font-family: 'Syne', sans-serif;">URBAN SEVAK</h1>
+            </div>
+            <div style="background: #1A1D27; padding: 30px; border-radius: 14px; border: 1px solid rgba(231,76,60,0.3);">
+              <h2 style="color: #fff; margin-bottom: 10px;">❌ Application Not Approved</h2>
+              <p style="color: #7B8094; margin-bottom: 20px;">
+                Unfortunately, your application to join URBAN SEVAK as a service provider was not approved at this time.
+              </p>
+              <div style="background: rgba(231,76,60,0.1); border: 1px solid rgba(231,76,60,0.3); border-radius: 8px; padding: 20px; margin: 20px 0;">
+                <p style="color: #7B8094; margin: 0 0 8px 0; font-size: 14px;">Reason:</p>
+                <p style="color: #fff; margin: 8px 0 0 0;">${provider.rejectionReason}</p>
+              </div>
+              <p style="color: #7B8094; font-size: 13px; margin-top: 20px;">
+                You may reapply after addressing the issues mentioned above.
+              </p>
+            </div>
+          </div>
+        `
+      });
+      console.log(`Rejection email sent to: ${provider.email}`);
+    } catch (emailErr) {
+      console.error("Failed to send rejection email:", emailErr);
+    }
+
+    res.json({ msg: "Provider rejected" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});

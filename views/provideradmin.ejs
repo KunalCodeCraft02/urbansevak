@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Provider Dashboard - HITECH</title>
+    <title>Provider Dashboard - URBAN SEVAK</title>
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -459,8 +459,8 @@
     <nav class="navbar">
         <div class="nav-inner">
             <a href="/">
-                <img src="/assets/logo.png" alt="HITECH" class="logo-img" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
-                <span class="logo-text" style="display:none">HI<span>TECH</span></span>
+                <img src="/assets/logo.png" alt="URBAN SEVAK" class="logo-img" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+                <span class="logo-text" style="display:none">URBAN<span>SEVAK</span></span>
             </a>
             <div class="nav-links" id="navLinks">
                 <a href="/">Home</a>
@@ -487,12 +487,12 @@
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon">📋</div>
-                <h2>0</h2>
+                <h2><%= pendingCount || 0 %></h2>
                 <p>Pending Requests</p>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">✅</div>
-                <h2>0</h2>
+                <h2><%= completedCount || 0 %></h2>
                 <p>Completed Jobs</p>
             </div>
             <div class="stat-card">
@@ -502,8 +502,8 @@
             </div>
             <div class="stat-card">
                 <div class="stat-icon">👁️</div>
-                <h2>0</h2>
-                <p>Profile Views</p>
+                <h2><%= acceptedCount || 0 %></h2>
+                <p>Active Jobs</p>
             </div>
         </div>
 

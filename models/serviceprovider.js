@@ -24,6 +24,13 @@ const providerSchema = new mongoose.Schema({
   experience: Number, // years
   category: String,
 
+  // 💰 Price Range
+  priceRange: {
+    min: Number,
+    max: Number,
+    unit: { type: String, default: "per visit" } // per visit, per hour, per day
+  },
+
   // 🧾 Verification
   aadhaarNumber: String,
   aadhaarImage: String, // store file path / URL
@@ -33,6 +40,14 @@ const providerSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+
+  // 🔑 SuperAdmin Approval Status
+  status: {
+    type: String,
+    enum: ["pending", "approved", "rejected"],
+    default: "pending"
+  },
+  rejectionReason: String,
 
   // ⭐ Ratings
   rating: {

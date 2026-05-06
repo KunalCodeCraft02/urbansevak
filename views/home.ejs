@@ -266,6 +266,7 @@
             transition: border-color 0.2s, box-shadow 0.2s;
             max-width: 700px;
             margin: 0 auto;
+            position: relative;
         }
         .search-bar:focus-within {
             border-color: rgba(0,196,106,0.35);
@@ -910,14 +911,12 @@
                 <span class="logo-text" style="display:none">URBAN<span>SEVAK</span></span>
             </a>
             <div class="nav-links" id="navLinks">
-                <a href="/">Home</a>
-                <!-- <a href="/track-booking">Track Booking</a> -->
-                <a href="/login">Log In</a>
-                <a href="/signupas">Sign Up</a>
+                <a href="/home">Home</a>
+                <a href="/track-booking">Track Booking</a>
+                <a href="/logout">Log Out</a>
             </div>
             <div class="nav-btns">
                 <a href="/sprovidersignup" class="btn-ghost">Become a Provider</a>
-                <button class="btn-primary" onclick="location.href='/signupas'">Join Free</button>
             </div>
             <button class="hamburger" onclick="toggleMenu()">&#9776;</button>
         </div>
@@ -928,7 +927,7 @@
         <div class="hero-inner">
             <div class="hero-badge">Now Live in Your City</div>
             <h1>Your City's Services,<br><em>One Tap Away</em></h1>
-            <p>Find trusted hyperlocal service professionals near you. From electricians to tutors — URBAN SEVAK connects you with the best in your neighbourhood.</p>
+            <p>Find trusted hyperlocal service professionals near you. From electricians to tutors — HITECH connects you with the best in your neighbourhood.</p>
             <div class="search-wrap">
                 <div class="search-bar">
                     <select id="searchCategory">
@@ -1219,9 +1218,6 @@
             // Visual debug: change border color
             input.style.borderColor = '#00C46A';
 
-            // Debug: change border color to show function is called
-            input.style.borderColor = '#00C46A';
-
             if (!query) {
                 dropdown.style.display = 'none';
                 return;
@@ -1354,65 +1350,59 @@
         });
     </script>
 
-    <!-- ONGOING WORK SECTION -->
-    <div class="ongoing-section" id="ongoingSection" style="display:none;">
+    <!-- MY BOOKINGS SECTION -->
+    <!-- <div class="bookings-section" id="bookingsSection">
         <div class="container" style="max-width:1400px;margin:auto;padding:0 40px;">
-            <h2 class="section-title">Ongoing Work</h2>
-            <div class="field" style="margin-bottom:16px;">
-                <label for="customerPhoneCheck">Enter Your Phone Number</label>
-                <div style="display:flex;gap:8px;">
-                    <input type="tel" id="customerPhoneCheck" placeholder="+91 98765 43210" style="flex:1;padding:14px 16px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:var(--bg2);outline:none;">
-                    <button onclick="checkOngoingWork()" class="submit-btn" style="width:auto;padding:14px 24px;">Check Work</button>
-                </div>
-            </div>
-            <div id="ongoingWorkList"></div>
+            <h2 class="section-title">My Bookings</h2>
+            <div id="bookingsList"></div>
         </div>
-    </div>
+    </div> -->
 
     <script>
-        // Check ongoing work
-        async function checkOngoingWork() {
-            const phone = document.getElementById("customerPhoneCheck").value.trim();
-            if (!phone) {
-                alert("Please enter your phone number");
-                return;
-            }
-
+        // Load user's bookings on page load
+        async function loadUserBookings() {
             try {
-                const res = await fetch(`/api/bookings-by-phone/${phone}`);
+                const res = await fetch('/api/user/bookings');
                 const bookings = await res.json();
 
-                const listDiv = document.getElementById("ongoingWorkList");
-                const section = document.getElementById("ongoingSection");
+                const listDiv = document.getElementById("bookingsList");
 
                 if (bookings.length === 0) {
-                    listDiv.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><h3>No ongoing work</h3><p>No ongoing work found for this phone number.</p></div>';
-                    section.style.display = "block";
+                    listDiv.innerHTML = '<div class="empty-state" style="text-align:center;padding:60px 20px;color:var(--text-muted);"><div style="font-size:48px;margin-bottom:16px;opacity:0.4;">📭</div><h3 style="font-size:18px;color:var(--white);margin-bottom:8px;">No bookings yet</h3><p style="font-size:14px;">Book a service to see your bookings here.</p></div>';
                     return;
                 }
 
-                section.style.display = "block";
                 listDiv.innerHTML = bookings.map(b => `
                     <div class="request-row" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px;">
-                        <div>
-                            <strong style="color:var(--white);font-size:16px;">${b.workDescription}</strong>
-                            <div style="color:var(--text-muted);font-size:14px;margin-top:8px;">Provider: ${b.provider ? b.provider.name : 'N/A'}</div>
-                            <div style="color:var(--text-muted);font-size:14px;">Status: <span class="status-badge status-${b.status}">${b.status}</span></div>
-                            ${b.status === 'accepted' ? `
-                                <div style="color:var(--green);font-size:13px;margin-top:8px;">OTP: ${b.otp || 'N/A'}</div>
-                                <button onclick="completeWork('${b._id}')" class="submit-btn" style="margin-top:12px;width:auto;padding:12px 24px;">Complete Work</button>
-                            ` : ''}
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;">
+                            <div style="flex:1;">
+                                <strong style="color:var(--white);font-size:16px;">${b.workDescription}</strong>
+                                <div style="color:var(--text-muted);font-size:14px;margin-top:8px;">Provider: ${b.provider ? b.provider.name : 'N/A'}</div>
+                                <div style="color:var(--text-muted);font-size:14px;">Address: ${b.customerAddress}</div>
+                                <div style="color:var(--text-muted);font-size:14px;margin-top:8px;">Status: <span class="status-badge status-${b.status}" style="display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;background:${b.status === 'completed' ? 'rgba(13,202,240,0.15);color:#0dcaf0' : b.status === 'accepted' ? 'var(--green-dim);color:var(--green)' : 'rgba(255,190,91,0.15);color:#ffbe5b'};">${b.status}</span></div>
+                                ${b.status === 'accepted' ? `
+                                    <div style="color:var(--green);font-size:13px;margin-top:8px;">OTP: ${b.otp || 'N/A'} (Share this with your provider)</div>
+                                ` : ''}
+                                ${b.status === 'completed' ? `
+                                    <div style="color:#0dcaf0;font-size:13px;margin-top:8px;">✅ Work completed on ${new Date(b.completedAt).toLocaleDateString()}</div>
+                                ` : ''}
+                            </div>
+                            <div>
+                                ${b.status === 'accepted' ? `
+                                    <button onclick="completeWork('${b._id}')" class="submit-btn" style="width:auto;padding:12px 24px;background:var(--green);color:#000;border:none;border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;">Work Done</button>
+                                ` : ''}
+                            </div>
                         </div>
                     </div>
                 `).join('');
             } catch (err) {
-                alert("Error checking ongoing work");
+                console.error("Error loading bookings:", err);
             }
         }
 
         // Complete work
         async function completeWork(bookingId) {
-            if (!confirm("Mark this work as completed?")) return;
+            if (!confirm("Mark this work as completed? This will notify your service provider.")) return;
 
             try {
                 const res = await fetch(`/api/bookings/${bookingId}/complete`, {
@@ -1420,8 +1410,8 @@
                 });
                 const result = await res.json();
                 if (res.ok) {
-                    alert("Work marked as completed!");
-                    checkOngoingWork();
+                    alert("Work marked as completed! Your service provider has been notified.");
+                    loadUserBookings();
                 } else {
                     alert(result.msg || "Failed to complete work");
                 }
@@ -1429,6 +1419,9 @@
                 alert("Server error");
             }
         }
+
+        // Load bookings on page load
+        // loadUserBookings();
     </script>
 </body>
 </html>

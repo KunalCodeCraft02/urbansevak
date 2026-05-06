@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SuperAdmin Login - URBAN SEVAK</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --green: #00C46A;
+            --bg: #0A0B0F;
+            --bg2: #0F1117;
+            --surface: #1A1D27;
+            --border: rgba(255,255,255,0.07);
+            --text: #F0F1F5;
+            --text-muted: #7B8094;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 400px;
+            padding: 48px 40px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            text-align: center;
+        }
+
+        .card h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .card p { color: var(--text-muted); font-size: 14px; margin-bottom: 24px; }
+
+        .field { margin-bottom: 16px; text-align: left; }
+        .field label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+        .field input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 15px;
+            color: var(--text);
+            background: var(--bg2);
+            outline: none;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .field input:focus {
+            border-color: var(--green);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--green);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .btn:hover { background: #00d975; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>SuperAdmin Login</h1>
+        <p>URBAN SEVAK Admin Panel</p>
+        <form id="loginForm">
+            <div class="field">
+                <label>Username</label>
+                <input type="text" name="username" placeholder="admin" required>
+            </div>
+            <div class="field">
+                <label>Password</label>
+                <input type="password" name="password" placeholder="•••••••" required>
+            </div>
+            <button type="submit" class="btn">Login</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+
+            try {
+                const res = await fetch('/superadmin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                if (res.ok) {
+                    window.location.href = result.redirect || '/superadmin/dashboard';
+                } else {
+                    alert(result.msg || 'Login failed');
+                }
+            } catch (err) {
+                alert('Server error');
+            }
+        });
+    </script>
+</body>
+</html>

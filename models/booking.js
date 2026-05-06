@@ -7,6 +7,12 @@ const bookingSchema = new mongoose.Schema({
   customerAddress: { type: String, required: true },
   customerEmail: { type: String, required: true },
 
+  // Customer reference (logged-in user)
+  customer: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User"
+  },
+
   // Service details
   workDescription: { type: String, required: true },
 
